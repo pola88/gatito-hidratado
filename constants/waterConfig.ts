@@ -1,0 +1,8 @@
+export const DEFAULT_GLASS_ML = 250
+export const DEFAULT_DAILY_GOAL_ML = 2000
+export const DEFAULT_DAILY_GOAL_GLASSES = 8
+export const UNDO_WINDOW_MS = 5 * 60 * 1000 // 5 min
+export const ASYNCSTORAGE_DEBOUNCE_MS = 500
+export const THIRSTY_THRESHOLD_MINUTES = 90
+export const STREAK_COMPLETION_THRESHOLD = 0.8 // 80%
+export const MAX_HISTORY_DAYS = 30
