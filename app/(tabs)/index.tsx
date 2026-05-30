@@ -15,7 +15,6 @@ import { WaterDrops } from '@/components/cat/WaterDrops'
 import { useWaterTracker } from '@/hooks/useWaterTracker'
 import { useCatMood } from '@/hooks/useCatMood'
 import { useStreak } from '@/hooks/useStreak'
-import { useNotifications } from '@/hooks/useNotifications'
 import { useWaterStore } from '@/stores/waterStore'
 import type { CatMood } from '@/types'
 
@@ -96,7 +95,7 @@ export default function HomeScreen() {
   const { mood, minutesSinceLastDrink } = useCatMood(progressPercent, lastDrinkTime)
   const { streak, isStreakAtRisk } = useStreak()
   const settings = useWaterStore(s => s.settings)
-  const { scheduleFromLastDrink } = useNotifications()
+
 
   const [showDrops, setShowDrops] = useState(false)
   const [drinkSound, setDrinkSound] = useState('')
@@ -153,9 +152,6 @@ export default function HomeScreen() {
     setTimeout(() => setShowSound(false), 1100)
 
     addWater()
-    if (settings.notificationsEnabled) {
-      scheduleFromLastDrink(settings, new Date())
-    }
   }
 
   const catAnimStyle = useAnimatedStyle(() => ({

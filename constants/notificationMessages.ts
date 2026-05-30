@@ -22,6 +22,21 @@ export const CAT_NOTIFICATION_MESSAGES = {
     "Don't break your streak! Drink water today 💪",
     "Keep the habit going! The cat believes in you ⭐",
   ],
+  escalation1: [
+    "It's been a while since your last sip... the cat is watching 🐱",
+    "Psst, have you had any water lately? 💧",
+    "The cat noticed some time has passed... how about a glass? 😺",
+  ],
+  escalation2: [
+    "It's been quite a while without water! The cat is worried 😟",
+    "Hey! You've gone too long without hydrating. Drink up now! 💦",
+    "The cat is getting restless... you really need water! 😿",
+  ],
+  escalation3: [
+    "THE CAT IS IN DANGER OF DEHYDRATION! DRINK WATER NOW! 🆘",
+    "MAXIMUM ALERT! Way too long without water! The cat is crying! 😭",
+    "HELP! The cat can't take it anymore! A GLASS OF WATER NOW! 😿💧",
+  ],
 } as const
 
 export type NotificationCategory = keyof typeof CAT_NOTIFICATION_MESSAGES

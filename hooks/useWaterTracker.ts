@@ -1,11 +1,13 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useWaterStore } from '@/stores/waterStore'
 import { calculateDailyGoal } from '@/utils/waterGoal'
 import { useStreak } from './useStreak'
+import { useNotifications } from './useNotifications'
 
 export function useWaterTracker() {
   const store = useWaterStore()
   const { checkAndUpdateStreak } = useStreak()
+  const { scheduleEscalatingReminders } = useNotifications()
 
   useEffect(() => {
     store.checkDayReset()
@@ -33,6 +35,20 @@ export function useWaterTracker() {
         }).breakdown
       : [`Manual goal: ${store.settings.dailyGoalMl}ml`]
 
+  /**
+   * Log a drink and immediately reschedule the escalating reminder chain
+   * anchored to now (the drink just happened).
+   */
+  const addWater = useCallback(
+    (ml?: number) => {
+      store.addWater(ml)
+      // The drink timestamp is "now"; schedule from this moment.
+      scheduleEscalatingReminders(store.settings, new Date())
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store.addWater, store.settings, scheduleEscalatingReminders],
+  )
+
   return {
     todayGlasses,
     todayMl,
@@ -41,7 +57,7 @@ export function useWaterTracker() {
     progressPercent,
     lastDrinkTime,
     goalBreakdown,
-    addWater: store.addWater,
+    addWater,
     undoLastDrink: store.undoLast,
     removeDrink: store.removeLast,
     todayEntries: store.today.entries,
