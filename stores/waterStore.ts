@@ -57,6 +57,7 @@ interface WaterStore {
   history: DayRecord[]
   addWater: (ml?: number) => void
   undoLast: () => void
+  removeLast: () => void
   updateSettings: (s: Partial<UserSettings>) => void
   resetDay: () => void
   archiveDay: () => void
@@ -91,6 +92,13 @@ export const useWaterStore = create<WaterStore>()(
         set(state => ({
           today: { ...state.today, entries: state.today.entries.slice(0, -1) },
         }))
+      },
+
+      removeLast: () => {
+        set(state => {
+          if (state.today.entries.length === 0) return state
+          return { today: { ...state.today, entries: state.today.entries.slice(0, -1) } }
+        })
       },
 
       updateSettings: (s) => {

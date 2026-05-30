@@ -43,6 +43,7 @@ export function useWaterTracker() {
     goalBreakdown,
     addWater: store.addWater,
     undoLastDrink: store.undoLast,
+    removeDrink: store.removeLast,
     todayEntries: store.today.entries,
   }
 }

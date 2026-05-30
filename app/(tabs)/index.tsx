@@ -89,8 +89,9 @@ function ZzzAnimation() {
 
 export default function HomeScreen() {
   const {
-    todayMl, goalMl, goal, todayGlasses,
+    goal, todayGlasses,
     progressPercent, lastDrinkTime, addWater,
+    removeDrink,
   } = useWaterTracker()
   const { mood, minutesSinceLastDrink } = useCatMood(progressPercent, lastDrinkTime)
   const { streak, isStreakAtRisk } = useStreak()
@@ -175,8 +176,6 @@ export default function HomeScreen() {
     : minutesSinceLastDrink < 60 ? `Hace ${minutesSinceLastDrink} min`
     : `Hace ${Math.floor(minutesSinceLastDrink / 60)}h`
 
-  const barBg = progressPercent > 60 ? '#38BDF8' : progressPercent > 30 ? '#FB923C' : '#EF4444'
-
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -231,17 +230,6 @@ export default function HomeScreen() {
             <Text style={styles.bubbleText}>{CAT_MESSAGES[mood]}</Text>
           </View>
 
-          {/* Water level */}
-          <View style={styles.levelWrap}>
-            <View style={styles.levelHeader}>
-              <Text style={styles.levelLabel}>💧 Nivel de agua del gatito</Text>
-              <Text style={styles.levelPct}>{Math.round(progressPercent)}%</Text>
-            </View>
-            <View style={styles.levelBar}>
-              <View style={[styles.levelFill, { width: `${progressPercent}%` as `${number}%`, backgroundColor: barBg }]} />
-            </View>
-          </View>
-
           <Text style={styles.tapHint}>👆 TOCA PARA BEBER AGUA</Text>
         </TouchableOpacity>
 
@@ -253,9 +241,19 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.glassesRow}>
-            {Array.from({ length: goal }).map((_, i) => (
-              <Text key={i} style={[styles.glass, { opacity: i < todayGlasses ? 1 : 0.22 }]}>🥤</Text>
-            ))}
+            {Array.from({ length: goal }).map((_, i) => {
+              const filled = i < todayGlasses
+              return (
+                <TouchableOpacity
+                  key={i}
+                  onPress={() => filled ? removeDrink() : addWater()}
+                  activeOpacity={0.6}
+                  hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+                >
+                  <Text style={[styles.glass, { opacity: filled ? 1 : 0.22 }]}>🥤</Text>
+                </TouchableOpacity>
+              )
+            })}
           </View>
 
           <View style={styles.barHeader}>
@@ -340,16 +338,6 @@ const styles = StyleSheet.create({
   },
   bubbleText: { color: '#fff', fontSize: 13, fontWeight: '700', textAlign: 'center' },
 
-  levelWrap: { gap: 6 },
-  levelHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  levelLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '700' },
-  levelPct: { color: '#60CFFF', fontSize: 13, fontWeight: '900' },
-  levelBar: {
-    height: 14, backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 100, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
-  },
-  levelFill: { height: '100%', borderRadius: 100 },
   tapHint: { textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: '700', letterSpacing: 1 },
 
   progressSection: { gap: 10 },
