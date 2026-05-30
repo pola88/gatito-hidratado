@@ -92,7 +92,7 @@ export default function HomeScreen() {
     progressPercent, lastDrinkTime, addWater,
     removeDrink,
   } = useWaterTracker()
-  const { mood, minutesSinceLastDrink } = useCatMood(progressPercent, lastDrinkTime)
+  const { mood, minutesSinceLastDrink } = useCatMood(lastDrinkTime)
   const { streak, isStreakAtRisk } = useStreak()
   const settings = useWaterStore(s => s.settings)
 

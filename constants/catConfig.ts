@@ -5,10 +5,11 @@ export const CAT_EMOJIS = {
   sleeping: '😴',
 } as const
 
-export const CAT_THRESHOLDS = {
-  happy: 70,    // progressPercent >= 70
-  thirsty: 40,  // progressPercent < 40
-  sleeping: 15, // progressPercent < 15
+export const CAT_TIME_THRESHOLDS = {
+  happy: 30,    // minutesSinceLastDrink < 30  → happy
+  normal: 60,   // minutesSinceLastDrink < 60  → normal
+  thirsty: 90,  // minutesSinceLastDrink < 90  → thirsty
+                // minutesSinceLastDrink >= 90 → sleeping
 } as const
 
 export const CAT_MESSAGES = {

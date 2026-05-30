@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { CatMood } from '@/types'
-import { CAT_THRESHOLDS } from '@/constants/catConfig'
-import { THIRSTY_THRESHOLD_MINUTES } from '@/constants/waterConfig'
+import { CAT_TIME_THRESHOLDS } from '@/constants/catConfig'
 import { minutesSince } from '@/utils/dateHelpers'
 
-export function useCatMood(progressPercent: number, lastDrinkTime: Date | null) {
-  const [minutesSinceLastDrink, setMinutesSinceLastDrink] = useState(0)
+export function useCatMood(lastDrinkTime: Date | null) {
+  const [minutesSinceLastDrink, setMinutesSinceLastDrink] = useState(
+    lastDrinkTime ? minutesSince(lastDrinkTime.getTime()) : 999
+  )
 
   useEffect(() => {
     const update = () => {
@@ -19,17 +20,14 @@ export function useCatMood(progressPercent: number, lastDrinkTime: Date | null) 
   }, [lastDrinkTime])
 
   let mood: CatMood
-  if (progressPercent < CAT_THRESHOLDS.sleeping) {
-    mood = 'sleeping'
-  } else if (
-    progressPercent < CAT_THRESHOLDS.thirsty ||
-    minutesSinceLastDrink > THIRSTY_THRESHOLD_MINUTES
-  ) {
-    mood = 'thirsty'
-  } else if (progressPercent >= CAT_THRESHOLDS.happy) {
+  if (minutesSinceLastDrink < CAT_TIME_THRESHOLDS.happy) {
     mood = 'happy'
-  } else {
+  } else if (minutesSinceLastDrink < CAT_TIME_THRESHOLDS.normal) {
     mood = 'normal'
+  } else if (minutesSinceLastDrink < CAT_TIME_THRESHOLDS.thirsty) {
+    mood = 'thirsty'
+  } else {
+    mood = 'sleeping'
   }
 
   const urgencyLevel: 1 | 2 | 3 =
