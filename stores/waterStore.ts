@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   isBreastfeeding: false,
   hotWeather: false,
   notificationsEnabled: false,
+  hasCompletedOnboarding: false,
 }
 
 function createEmptyDay(settings: UserSettings): DayRecord {

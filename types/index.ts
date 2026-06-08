@@ -28,6 +28,7 @@ export interface UserSettings {
   isBreastfeeding: boolean
   hotWeather: boolean
   notificationsEnabled: boolean
+  hasCompletedOnboarding: boolean
 }
 
 export type CatMood = 'happy' | 'normal' | 'thirsty' | 'sleeping'

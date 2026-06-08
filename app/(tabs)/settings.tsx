@@ -74,6 +74,58 @@ function IntervalControl({ value, onChange }: { value: number; onChange: (v: num
   )
 }
 
+function StepperControl({ value, step, min, max, format, onChange }: {
+  value: number
+  step: number
+  min: number
+  max: number
+  format: (v: number) => string
+  onChange: (v: number) => void
+}) {
+  return (
+    <View style={styles.intervalRow}>
+      <TouchableOpacity
+        style={styles.intervalBtn}
+        onPress={() => onChange(Math.max(min, value - step))}
+      >
+        <Text style={styles.intervalBtnText}>−</Text>
+      </TouchableOpacity>
+      <Text style={styles.intervalValue}>{format(value)}</Text>
+      <TouchableOpacity
+        style={styles.intervalBtn}
+        onPress={() => onChange(Math.min(max, value + step))}
+      >
+        <Text style={styles.intervalBtnText}>+</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+type Sex = 'male' | 'female' | 'other'
+
+function SexSelector({ value, onChange }: { value: Sex; onChange: (v: Sex) => void }) {
+  const options: { key: Sex; label: string }[] = [
+    { key: 'male', label: 'Masc.' },
+    { key: 'female', label: 'Fem.' },
+    { key: 'other', label: 'Otro' },
+  ]
+  return (
+    <View style={styles.chipRow}>
+      {options.map(opt => (
+        <TouchableOpacity
+          key={opt.key}
+          style={[styles.chip, value === opt.key && styles.chipActive]}
+          onPress={() => onChange(opt.key)}
+        >
+          <Text style={[styles.chipText, value === opt.key && styles.chipTextActive]}>
+            {opt.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  )
+}
+
 export default function SettingsScreen() {
   const settings = useWaterStore(s => s.settings)
   const updateSettings = useWaterStore(s => s.updateSettings)
@@ -87,10 +139,15 @@ export default function SettingsScreen() {
 
   const [name, setName] = useState(settings.name)
   const [weight, setWeight] = useState(String(settings.weightKg))
+  const [sex, setSex] = useState<Sex>(settings.sex)
+  const [glassVolumeMl, setGlassVolumeMl] = useState(settings.glassVolumeMl)
   const [wakeUp, setWakeUp] = useState(settings.wakeUpTime)
   const [bedTime, setBedTime] = useState(settings.bedTime)
   const [intervalMin, setIntervalMin] = useState(settings.reminderIntervalMin)
   const [notificationsEnabled, setNotificationsEnabled] = useState(settings.notificationsEnabled)
+  const [exerciseMinutes, setExerciseMinutes] = useState(settings.exerciseMinutesToday)
+  const [isPregnant, setIsPregnant] = useState(settings.isPregnant)
+  const [isBreastfeeding, setIsBreastfeeding] = useState(settings.isBreastfeeding)
   const [saving, setSaving] = useState(false)
 
   const recommendedInterval = useMemo(
@@ -123,15 +180,25 @@ export default function SettingsScreen() {
     setNotificationsEnabled(value)
   }
 
+  const handlePregnantChange = (v: boolean) => {
+    setIsPregnant(v)
+    if (v) setIsBreastfeeding(false)
+  }
+
   const handleSave = async () => {
     setSaving(true)
     const parsedWeight = parseFloat(weight)
     const updatedSettings: Partial<UserSettings> = {
       name,
+      sex,
+      glassVolumeMl,
       wakeUpTime: wakeUp,
       bedTime,
       reminderIntervalMin: intervalMin,
       notificationsEnabled,
+      exerciseMinutesToday: exerciseMinutes,
+      isPregnant,
+      isBreastfeeding,
     }
     if (!isNaN(parsedWeight) && parsedWeight > 0) {
       updatedSettings.weightKg = parsedWeight
@@ -191,6 +258,24 @@ export default function SettingsScreen() {
             />
             <Text style={styles.fieldHint}>Afecta el cálculo de la meta diaria</Text>
           </View>
+
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>Sexo</Text>
+            <SexSelector value={sex} onChange={setSex} />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>Tamaño del vaso</Text>
+            <StepperControl
+              value={glassVolumeMl}
+              step={50}
+              min={100}
+              max={500}
+              format={v => `${v} ml`}
+              onChange={setGlassVolumeMl}
+            />
+            <Text style={styles.fieldHint}>Define cuántos vasos equivale tu meta</Text>
+          </View>
         </View>
 
         {/* Goal */}
@@ -237,6 +322,51 @@ export default function SettingsScreen() {
               thumbColor="#fff"
             />
           </View>
+
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>Ejercicio hoy</Text>
+            <StepperControl
+              value={exerciseMinutes}
+              step={15}
+              min={0}
+              max={180}
+              format={v => v === 0 ? 'Sin ejercicio' : `${v} min`}
+              onChange={setExerciseMinutes}
+            />
+            <Text style={styles.fieldHint}>+500ml por hora de ejercicio</Text>
+          </View>
+
+          {sex === 'female' && (
+            <>
+              <View style={styles.switchRow}>
+                <View style={styles.switchLabelGroup}>
+                  <Text style={styles.fieldLabel}>Embarazo 🤰</Text>
+                  <Text style={styles.fieldHint}>Suma +300ml a la meta</Text>
+                </View>
+                <Switch
+                  value={isPregnant}
+                  onValueChange={handlePregnantChange}
+                  trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#F9A8D4' }}
+                  thumbColor="#fff"
+                />
+              </View>
+
+              {!isPregnant && (
+                <View style={styles.switchRow}>
+                  <View style={styles.switchLabelGroup}>
+                    <Text style={styles.fieldLabel}>Lactancia 🤱</Text>
+                    <Text style={styles.fieldHint}>Suma +700ml a la meta</Text>
+                  </View>
+                  <Switch
+                    value={isBreastfeeding}
+                    onValueChange={setIsBreastfeeding}
+                    trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#F9A8D4' }}
+                    thumbColor="#fff"
+                  />
+                </View>
+              )}
+            </>
+          )}
         </View>
 
         {/* Reminders */}
@@ -282,7 +412,6 @@ export default function SettingsScreen() {
 
               <View style={styles.divider} />
 
-              {/* Recommended interval chip */}
               <View style={styles.recommendedBox}>
                 <View style={styles.recommendedHeader}>
                   <Text style={styles.recommendedTitle}>Intervalo recomendado</Text>
@@ -296,13 +425,11 @@ export default function SettingsScreen() {
                 </Text>
               </View>
 
-              {/* Manual interval adjust */}
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>Ajuste manual</Text>
                 <IntervalControl value={intervalMin} onChange={setIntervalMin} />
               </View>
 
-              {/* Preview */}
               <View style={styles.previewBox}>
                 <Text style={styles.previewTitle}>Vista previa de horarios</Text>
                 <Text style={styles.previewText}>
@@ -372,6 +499,24 @@ const styles = StyleSheet.create({
 
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.07)' },
 
+  // Sex selector chips
+  chipRow: { flexDirection: 'row', gap: 8 },
+  chip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  chipActive: {
+    backgroundColor: 'rgba(96,207,255,0.15)',
+    borderColor: '#60CFFF',
+  },
+  chipText: { color: 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: '700' },
+  chipTextActive: { color: '#60CFFF' },
+
   // Time control
   timeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   timeLabelGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
@@ -401,7 +546,7 @@ const styles = StyleSheet.create({
   recommendedValue: { color: '#60CFFF', fontSize: 28, fontWeight: '900' },
   recommendedHint: { color: 'rgba(255,255,255,0.4)', fontSize: 12 },
 
-  // Interval control
+  // Interval / Stepper control
   intervalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   intervalBtn: {
     flex: 1, paddingVertical: 10,
