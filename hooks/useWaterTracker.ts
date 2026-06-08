@@ -32,6 +32,7 @@ export function useWaterTracker() {
           isPregnant: store.settings.isPregnant,
           isBreastfeeding: store.settings.isBreastfeeding,
           hotWeather: store.settings.hotWeather,
+          glassVolumeMl: store.settings.glassVolumeMl,
         }).breakdown
       : [`Manual goal: ${store.settings.dailyGoalMl}ml`]
 

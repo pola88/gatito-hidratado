@@ -5,6 +5,7 @@ export interface GoalFactors {
   isPregnant: boolean
   isBreastfeeding: boolean
   hotWeather: boolean
+  glassVolumeMl: number
 }
 
 export interface GoalResult {
@@ -48,15 +49,17 @@ export function calculateDailyGoal(factors: GoalFactors): GoalResult {
   const adjustmentsMl = adjustments.reduce((sum, a) => sum + a.ml, 0)
   const totalMl = baseMl + adjustmentsMl
 
+  const totalGlasses = Math.ceil(totalMl / factors.glassVolumeMl)
+
   return {
     baseMl,
     adjustmentsMl,
     totalMl,
-    totalGlasses: Math.ceil(totalMl / 250),
+    totalGlasses,
     breakdown: [
       `Base (${factors.weightKg} kg × ${mlPerKg} ml): ${baseMl} ml`,
       ...adjustments.map(a => `+ ${a.label}: ${a.ml} ml`),
-      `Total: ${totalMl} ml (${Math.ceil(totalMl / 250)} vasos)`,
+      `Total: ${totalMl} ml (${totalGlasses} vasos de ${factors.glassVolumeMl} ml)`,
     ],
   }
 }

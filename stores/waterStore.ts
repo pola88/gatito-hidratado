@@ -39,6 +39,7 @@ function createEmptyDay(settings: UserSettings): DayRecord {
       isPregnant: settings.isPregnant,
       isBreastfeeding: settings.isBreastfeeding,
       hotWeather: settings.hotWeather,
+      glassVolumeMl: settings.glassVolumeMl,
     })
     return {
       date: getTodayString(),

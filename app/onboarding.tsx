@@ -411,8 +411,8 @@ export default function OnboardingScreen() {
 
   const goalResult = useMemo(() => {
     const weightKg = parseFloat(weight) || 70
-    return calculateDailyGoal({ weightKg, sex, exerciseMinutes: 0, isPregnant, isBreastfeeding, hotWeather })
-  }, [weight, sex, isPregnant, isBreastfeeding, hotWeather])
+    return calculateDailyGoal({ weightKg, sex, exerciseMinutes: 0, isPregnant, isBreastfeeding, hotWeather, glassVolumeMl })
+  }, [weight, sex, isPregnant, isBreastfeeding, hotWeather, glassVolumeMl])
 
   const recommendedInterval = useMemo(
     () => calculateRecommendedInterval(goalResult.totalGlasses, wakeUp, bedTime),
