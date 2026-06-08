@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { useWaterStore } from '@/stores/waterStore'
 import { calculateDailyGoal } from '@/utils/waterGoal'
+import { calcTotalMl, calcGlasses, calcProgressPercent } from '@/utils/hydrationCalc'
 import { useStreak } from './useStreak'
 import { useNotifications } from './useNotifications'
 
@@ -15,11 +16,9 @@ export function useWaterTracker() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const todayMl = store.today.entries.reduce((sum, e) => sum + e.amount, 0)
-  const todayGlasses = Math.floor(todayMl / store.settings.glassVolumeMl)
-  const progressPercent = store.today.goalMl > 0
-    ? Math.min(100, Math.round((todayMl / store.today.goalMl) * 100))
-    : 0
+  const todayMl = calcTotalMl(store.today.entries)
+  const todayGlasses = calcGlasses(todayMl, store.settings.glassVolumeMl)
+  const progressPercent = calcProgressPercent(todayMl, store.today.goalMl)
   const lastEntry = store.today.entries[store.today.entries.length - 1]
   const lastDrinkTime = lastEntry ? new Date(lastEntry.timestamp) : null
 

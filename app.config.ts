@@ -1,6 +1,6 @@
 import { ExpoConfig } from 'expo/config'
 
-const config: ExpoConfig = {
+const config: ExpoConfig & { splash?: Record<string, string> } = {
   name: "Gatito Hidratado",
   slug: "gatito-hidratado",
   version: "1.0.0",

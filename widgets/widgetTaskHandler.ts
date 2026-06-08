@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { registerWidgetTaskHandler } from 'react-native-android-widget'
 import React from 'react'
 import { WaterWidget } from './WaterWidget'
+import { getTodayString } from '@/utils/dateHelpers'
+import { calcTotalMl, calcGlasses, calcProgressPercent } from '@/utils/hydrationCalc'
 
 const STORAGE_KEY = '@gatito_store'
 
@@ -18,27 +20,24 @@ interface PersistedState {
   }
 }
 
-function getTodayString(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-}
-
-async function readWaterState(): Promise<{ glasses: number; goal: number; glassVolumeMl: number; canUndo: boolean }> {
+async function readWaterState(): Promise<{ glasses: number; goal: number; progressPercent: number; glassVolumeMl: number; canUndo: boolean }> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY)
-    if (!raw) return { glasses: 0, goal: 8, glassVolumeMl: 250, canUndo: false }
+    if (!raw) return { glasses: 0, goal: 8, progressPercent: 0, glassVolumeMl: 250, canUndo: false }
     const { state }: PersistedState = JSON.parse(raw)
     const glassVolumeMl = state.settings?.glassVolumeMl ?? 250
     const entries = state.today.date === getTodayString() ? state.today.entries : []
-    const totalMl = entries.reduce((sum, e) => sum + e.amount, 0)
+    const goalMl = state.today.goalMl ?? 2000
+    const totalMl = calcTotalMl(entries)
     return {
-      glasses: Math.floor(totalMl / glassVolumeMl),
+      glasses: calcGlasses(totalMl, glassVolumeMl),
       goal: state.today.goal ?? 8,
+      progressPercent: calcProgressPercent(totalMl, goalMl),
       glassVolumeMl,
       canUndo: entries.length > 0,
     }
   } catch {
-    return { glasses: 0, goal: 8, glassVolumeMl: 250, canUndo: false }
+    return { glasses: 0, goal: 8, progressPercent: 0, glassVolumeMl: 250, canUndo: false }
   }
 }
 
@@ -87,6 +86,6 @@ registerWidgetTaskHandler(async ({ widgetAction, clickAction, renderWidget }) =>
     }
   }
 
-  const { glasses, goal, canUndo } = await readWaterState()
-  renderWidget(React.createElement(WaterWidget, { glasses, goal, canUndo }))
+  const { glasses, goal, progressPercent, canUndo } = await readWaterState()
+  renderWidget(React.createElement(WaterWidget, { glasses, goal, progressPercent, canUndo }))
 })

@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(chmod +x /Users/pola/Projects/gatito-agua/.husky/pre-commit)"
     ]
   }
 }

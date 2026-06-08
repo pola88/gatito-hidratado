@@ -15,7 +15,6 @@ import { WaterDrops } from '@/components/cat/WaterDrops'
 import { useWaterTracker } from '@/hooks/useWaterTracker'
 import { useCatMood } from '@/hooks/useCatMood'
 import { useStreak } from '@/hooks/useStreak'
-import { useWaterStore } from '@/stores/waterStore'
 import type { CatMood } from '@/types'
 
 const CAT_EMOJIS: Record<CatMood, string> = {
@@ -88,13 +87,12 @@ function ZzzAnimation() {
 
 export default function HomeScreen() {
   const {
-    goal, todayGlasses,
+    goal, todayGlasses, todayMl,
     progressPercent, lastDrinkTime, addWater,
     removeDrink,
   } = useWaterTracker()
   const { mood, minutesSinceLastDrink } = useCatMood(lastDrinkTime)
   const { streak, isStreakAtRisk } = useStreak()
-  const settings = useWaterStore(s => s.settings)
 
 
   const [showDrops, setShowDrops] = useState(false)
@@ -162,8 +160,8 @@ export default function HomeScreen() {
     transform: [{ translateY: soundY.value }],
   }))
 
-  const progress = goal > 0 ? Math.min(100, Math.round((todayGlasses / goal) * 100)) : 0
-  const litros = ((todayGlasses * settings.glassVolumeMl) / 1000).toFixed(2)
+  const progress = progressPercent
+  const litros = (todayMl / 1000).toFixed(2)
   const catStateLabel = { happy: '😻 Feliz', normal: '🐱 Normal', thirsty: '😿 Sediento', sleeping: '💤 Dormido' }[mood]
 
   const lastDrinkLabel = minutesSinceLastDrink >= 999

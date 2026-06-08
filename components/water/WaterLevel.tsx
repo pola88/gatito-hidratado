@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated'
+import { getProgressColor } from '@/utils/hydrationCalc'
 
 export interface WaterLevelProps {
   progressPercent: number
@@ -14,12 +15,6 @@ export interface WaterLevelProps {
 }
 
 const BAR_MAX_WIDTH = 260
-
-function getBarColor(percent: number): string {
-  if (percent >= 70) return '#4ade80'
-  if (percent >= 40) return '#FB923C'
-  return '#EF4444'
-}
 
 export function WaterLevel({ progressPercent, goalMl, currentMl }: WaterLevelProps) {
   const widthProgress = useSharedValue(0)
@@ -32,7 +27,7 @@ export function WaterLevel({ progressPercent, goalMl, currentMl }: WaterLevelPro
     })
   }, [progressPercent, widthProgress])
 
-  const color = getBarColor(progressPercent)
+  const color = getProgressColor(progressPercent)
 
   const animatedBarStyle = useAnimatedStyle(() => ({
     width: widthProgress.value * BAR_MAX_WIDTH,

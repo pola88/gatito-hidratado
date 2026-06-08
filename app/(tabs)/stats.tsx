@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useWaterStore } from '@/stores/waterStore'
 import { useStreak } from '@/hooks/useStreak'
 import { useWaterTracker } from '@/hooks/useWaterTracker'
+import { calcTotalMl, calcProgressPercent, getProgressColor } from '@/utils/hydrationCalc'
 
 function formatTime(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
@@ -16,10 +17,10 @@ function formatDate(dateStr: string): string {
 }
 
 function HistoryBar({ record }: { record: { date: string; entries: { amount: number }[]; goalMl: number; goal: number } }) {
-  const totalMl = record.entries.reduce((sum, e) => sum + e.amount, 0)
-  const pct = record.goalMl > 0 ? Math.min(100, Math.round((totalMl / record.goalMl) * 100)) : 0
+  const totalMl = calcTotalMl(record.entries)
+  const pct = calcProgressPercent(totalMl, record.goalMl)
   const reached = pct >= 80
-  const barColor = pct >= 80 ? '#4ade80' : pct >= 50 ? '#60CFFF' : '#FB923C'
+  const barColor = getProgressColor(pct)
 
   return (
     <View style={styles.histRow}>
@@ -37,10 +38,9 @@ export default function StatsScreen() {
   const { todayMl, goalMl, progressPercent, todayGlasses, goal, todayEntries } = useWaterTracker()
   const { streak, isStreakAtRisk } = useStreak()
   const history = useWaterStore(s => s.history)
-  const settings = useWaterStore(s => s.settings)
 
-  const litros = ((todayGlasses * settings.glassVolumeMl) / 1000).toFixed(2)
-  const barBg = progressPercent >= 80 ? '#4ade80' : progressPercent >= 50 ? '#60CFFF' : '#FB923C'
+  const litros = (todayMl / 1000).toFixed(2)
+  const barBg = getProgressColor(progressPercent)
 
   return (
     <SafeAreaView style={styles.safe}>

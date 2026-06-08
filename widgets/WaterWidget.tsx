@@ -1,22 +1,23 @@
 import React from 'react'
 import { FlexWidget, TextWidget } from 'react-native-android-widget'
+import { CAT_EMOJIS, CAT_HYDRATION_THRESHOLDS } from '@/constants/catConfig'
 
 interface WaterWidgetProps {
   glasses: number
   goal: number
+  progressPercent: number
   canUndo: boolean
 }
 
-function getCatEmoji(glasses: number, goal: number): string {
-  const pct = goal > 0 ? (glasses / goal) * 100 : 0
-  if (pct >= 70) return '😺'
-  if (pct >= 40) return '🐱'
-  if (pct >= 15) return '😿'
-  return '😴'
+function getCatEmoji(progressPercent: number): string {
+  if (progressPercent >= CAT_HYDRATION_THRESHOLDS.happy) return CAT_EMOJIS.happy
+  if (progressPercent >= CAT_HYDRATION_THRESHOLDS.normal) return CAT_EMOJIS.normal
+  if (progressPercent >= CAT_HYDRATION_THRESHOLDS.thirsty) return CAT_EMOJIS.thirsty
+  return CAT_EMOJIS.sleeping
 }
 
-export function WaterWidget({ glasses, goal, canUndo }: WaterWidgetProps) {
-  const emoji = getCatEmoji(glasses, goal)
+export function WaterWidget({ glasses, goal, progressPercent, canUndo }: WaterWidgetProps) {
+  const emoji = getCatEmoji(progressPercent)
 
   return (
     <FlexWidget
@@ -44,7 +45,7 @@ export function WaterWidget({ glasses, goal, canUndo }: WaterWidgetProps) {
             maxLines={1}
           />
           <TextWidget
-            text={`${goal > 0 ? Math.round((glasses / goal) * 100) : 0}%`}
+            text={`${progressPercent}%`}
             style={{ fontSize: 11, color: '#7a8d9e' }}
             maxLines={1}
           />
@@ -72,7 +73,7 @@ export function WaterWidget({ glasses, goal, canUndo }: WaterWidgetProps) {
         <FlexWidget
           style={{
             flex: 1,
-            backgroundColor: canUndo ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
+            backgroundColor: canUndo ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.04)',
             borderRadius: 10,
             paddingVertical: 9,
             alignItems: 'center',
@@ -84,7 +85,7 @@ export function WaterWidget({ glasses, goal, canUndo }: WaterWidgetProps) {
             text="- 🥤"
             style={{
               fontSize: 14,
-              color: canUndo ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.2)',
+              color: canUndo ? 'rgba(255, 255, 255, 0.65)' : 'rgba(255, 255, 255, 0.2)',
               fontWeight: 'bold',
               textAlign: 'center',
             }}
