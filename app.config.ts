@@ -56,6 +56,24 @@ const config: ExpoConfig = {
         color: "#60CFFF",
         defaultChannel: "water-reminders"
       }
+    ],
+    [
+      "react-native-android-widget",
+      {
+        widgets: [
+          {
+            name: "WaterWidget",
+            label: "Gatito Hidratado",
+            description: "Seguí tu hidratación desde la pantalla de inicio",
+            minWidth: "110dp",
+            minHeight: "40dp",
+            targetCellWidth: 2,
+            targetCellHeight: 1,
+            resizeMode: "none",
+            updatePeriodMillis: 0,
+          }
+        ]
+      }
     ]
   ],
   experiments: {

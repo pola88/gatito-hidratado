@@ -1,10 +1,14 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Platform } from 'react-native'
+import { requestWidgetUpdate } from 'react-native-android-widget'
+import React from 'react'
 import { DayRecord, UserSettings, WaterEntry } from '@/types'
 import { getTodayString } from '@/utils/dateHelpers'
 import { DEFAULT_DAILY_GOAL_ML, DEFAULT_GLASS_ML, MAX_HISTORY_DAYS, UNDO_WINDOW_MS } from '@/constants/waterConfig'
 import { calculateDailyGoal } from '@/utils/waterGoal'
+import { WaterWidget } from '@/widgets/WaterWidget'
 
 const DEFAULT_SETTINGS: UserSettings = {
   name: '',
@@ -83,6 +87,17 @@ export const useWaterStore = create<WaterStore>()(
         set(state => ({
           today: { ...state.today, entries: [...state.today.entries, entry] },
         }))
+
+        if (Platform.OS === 'android') {
+          const { today } = get()
+          const glassVolumeMl = get().settings.glassVolumeMl
+          const totalMl = today.entries.reduce((sum, e) => sum + e.amount, 0)
+          const glasses = Math.floor(totalMl / glassVolumeMl)
+          requestWidgetUpdate({
+            widgetName: 'WaterWidget',
+            renderWidget: () => React.createElement(WaterWidget, { glasses, goal: today.goal }),
+          }).catch(() => {})
+        }
       },
 
       undoLast: () => {

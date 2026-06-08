@@ -588,6 +588,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 17,
     alignItems: 'center',
+    alignSelf: 'stretch',
   },
   primaryBtnMt: { marginTop: 8 },
   primaryBtnText: { color: '#0d1b2a', fontSize: 16, fontWeight: '800' },
