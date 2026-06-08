@@ -139,7 +139,16 @@ export const useWaterStore = create<WaterStore>()(
       },
 
       updateSettings: (s) => {
-        set(state => ({ settings: { ...state.settings, ...s } }))
+        set(state => {
+          const newSettings = { ...state.settings, ...s }
+          const goalFields: (keyof UserSettings)[] = [
+            'glassVolumeMl', 'weightKg', 'sex', 'goalMode', 'dailyGoalMl',
+            'exerciseMinutesToday', 'isPregnant', 'isBreastfeeding', 'hotWeather',
+          ]
+          if (!goalFields.some(f => f in s)) return { settings: newSettings }
+          const { goal, goalMl } = createEmptyDay(newSettings)
+          return { settings: newSettings, today: { ...state.today, goal, goalMl } }
+        })
       },
 
       archiveDay: () => {

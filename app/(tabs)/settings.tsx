@@ -101,6 +101,44 @@ function StepperControl({ value, step, min, max, format, onChange }: {
   )
 }
 
+const ESCALATION_FACTORS = [1.0, 0.75, 0.5]
+const ESCALATION_META = [
+  { emoji: '🐱', tone: 'Suave' },
+  { emoji: '😿', tone: 'Insistente' },
+  { emoji: '🆘', tone: 'Urgente' },
+]
+
+function EscalationPreview({ intervalMin }: { intervalMin: number }) {
+  let cumulative = 0
+  const steps = ESCALATION_FACTORS.map((factor, i) => {
+    const delta = Math.round(intervalMin * factor)
+    cumulative += delta
+    return { delta, cumulative, ...ESCALATION_META[i] }
+  })
+
+  return (
+    <View style={styles.escalationBox}>
+      <Text style={styles.escalationTitle}>Cadena de recordatorios</Text>
+      <Text style={styles.escalationSub}>Desde tu último vaso</Text>
+      {steps.map((step, i) => (
+        <View key={i} style={styles.escalationRow}>
+          <View style={styles.escalationLeft}>
+            <Text style={styles.escalationDelta}>+{formatInterval(step.delta)}</Text>
+            {i < steps.length - 1 && <View style={styles.escalationConnector} />}
+          </View>
+          <View style={styles.escalationRight}>
+            <Text style={styles.escalationEmoji}>{step.emoji}</Text>
+            <View>
+              <Text style={styles.escalationTone}>{step.tone}</Text>
+              <Text style={styles.escalationCumulative}>{formatInterval(step.cumulative)} sin tomar agua</Text>
+            </View>
+          </View>
+        </View>
+      ))}
+    </View>
+  )
+}
+
 type Sex = 'male' | 'female' | 'other'
 
 function SexSelector({ value, onChange }: { value: Sex; onChange: (v: Sex) => void }) {
@@ -139,15 +177,10 @@ export default function SettingsScreen() {
 
   const [name, setName] = useState(settings.name)
   const [weight, setWeight] = useState(String(settings.weightKg))
-  const [sex, setSex] = useState<Sex>(settings.sex)
-  const [glassVolumeMl, setGlassVolumeMl] = useState(settings.glassVolumeMl)
   const [wakeUp, setWakeUp] = useState(settings.wakeUpTime)
   const [bedTime, setBedTime] = useState(settings.bedTime)
   const [intervalMin, setIntervalMin] = useState(settings.reminderIntervalMin)
   const [notificationsEnabled, setNotificationsEnabled] = useState(settings.notificationsEnabled)
-  const [exerciseMinutes, setExerciseMinutes] = useState(settings.exerciseMinutesToday)
-  const [isPregnant, setIsPregnant] = useState(settings.isPregnant)
-  const [isBreastfeeding, setIsBreastfeeding] = useState(settings.isBreastfeeding)
   const [saving, setSaving] = useState(false)
 
   const recommendedInterval = useMemo(
@@ -181,42 +214,38 @@ export default function SettingsScreen() {
   }
 
   const handlePregnantChange = (v: boolean) => {
-    setIsPregnant(v)
-    if (v) setIsBreastfeeding(false)
+    updateSettings({ isPregnant: v, ...(v ? { isBreastfeeding: false } : {}) })
   }
 
-  const handleSave = async () => {
+  const handleNameBlur = () => {
+    const trimmed = name.trim()
+    if (trimmed) updateSettings({ name: trimmed })
+  }
+
+  const handleWeightBlur = () => {
+    const parsed = parseFloat(weight)
+    if (!isNaN(parsed) && parsed > 0) updateSettings({ weightKg: parsed })
+  }
+
+  const handleSchedule = async () => {
     setSaving(true)
-    const parsedWeight = parseFloat(weight)
-    const updatedSettings: Partial<UserSettings> = {
-      name,
-      sex,
-      glassVolumeMl,
+    const notifSettings: Partial<UserSettings> = {
       wakeUpTime: wakeUp,
       bedTime,
       reminderIntervalMin: intervalMin,
       notificationsEnabled,
-      exerciseMinutesToday: exerciseMinutes,
-      isPregnant,
-      isBreastfeeding,
     }
-    if (!isNaN(parsedWeight) && parsedWeight > 0) {
-      updatedSettings.weightKg = parsedWeight
-    }
-
-    updateSettings(updatedSettings)
-
-    const fullSettings: UserSettings = { ...settings, ...updatedSettings }
+    updateSettings(notifSettings)
+    const fullSettings: UserSettings = { ...settings, ...notifSettings }
     if (notificationsEnabled) {
       await scheduleFromLastDrink(fullSettings, lastEntry)
     } else {
       await cancelAllReminders()
     }
-
     setSaving(false)
     Alert.alert('¡Listo!', notificationsEnabled
       ? `Recordatorios programados cada ${formatInterval(intervalMin)} entre ${wakeUp} y ${bedTime} 🔔`
-      : 'Configuración guardada.',
+      : 'Recordatorios desactivados.',
     )
   }
 
@@ -239,6 +268,7 @@ export default function SettingsScreen() {
               style={styles.input}
               value={name}
               onChangeText={setName}
+              onEndEditing={handleNameBlur}
               placeholder="Tu nombre"
               placeholderTextColor="rgba(255,255,255,0.3)"
               returnKeyType="done"
@@ -251,6 +281,7 @@ export default function SettingsScreen() {
               style={styles.input}
               value={weight}
               onChangeText={setWeight}
+              onEndEditing={handleWeightBlur}
               placeholder="70"
               placeholderTextColor="rgba(255,255,255,0.3)"
               keyboardType="decimal-pad"
@@ -261,18 +292,18 @@ export default function SettingsScreen() {
 
           <View style={styles.field}>
             <Text style={styles.fieldLabel}>Sexo</Text>
-            <SexSelector value={sex} onChange={setSex} />
+            <SexSelector value={settings.sex} onChange={v => updateSettings({ sex: v })} />
           </View>
 
           <View style={styles.field}>
             <Text style={styles.fieldLabel}>Tamaño del vaso</Text>
             <StepperControl
-              value={glassVolumeMl}
+              value={settings.glassVolumeMl}
               step={50}
               min={100}
               max={500}
               format={v => `${v} ml`}
-              onChange={setGlassVolumeMl}
+              onChange={v => updateSettings({ glassVolumeMl: v })}
             />
             <Text style={styles.fieldHint}>Define cuántos vasos equivale tu meta</Text>
           </View>
@@ -326,17 +357,17 @@ export default function SettingsScreen() {
           <View style={styles.field}>
             <Text style={styles.fieldLabel}>Ejercicio hoy</Text>
             <StepperControl
-              value={exerciseMinutes}
+              value={settings.exerciseMinutesToday}
               step={15}
               min={0}
               max={180}
               format={v => v === 0 ? 'Sin ejercicio' : `${v} min`}
-              onChange={setExerciseMinutes}
+              onChange={v => updateSettings({ exerciseMinutesToday: v })}
             />
             <Text style={styles.fieldHint}>+500ml por hora de ejercicio</Text>
           </View>
 
-          {sex === 'female' && (
+          {settings.sex === 'female' && (
             <>
               <View style={styles.switchRow}>
                 <View style={styles.switchLabelGroup}>
@@ -344,22 +375,22 @@ export default function SettingsScreen() {
                   <Text style={styles.fieldHint}>Suma +300ml a la meta</Text>
                 </View>
                 <Switch
-                  value={isPregnant}
+                  value={settings.isPregnant}
                   onValueChange={handlePregnantChange}
                   trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#F9A8D4' }}
                   thumbColor="#fff"
                 />
               </View>
 
-              {!isPregnant && (
+              {!settings.isPregnant && (
                 <View style={styles.switchRow}>
                   <View style={styles.switchLabelGroup}>
                     <Text style={styles.fieldLabel}>Lactancia 🤱</Text>
                     <Text style={styles.fieldHint}>Suma +700ml a la meta</Text>
                   </View>
                   <Switch
-                    value={isBreastfeeding}
-                    onValueChange={setIsBreastfeeding}
+                    value={settings.isBreastfeeding}
+                    onValueChange={v => updateSettings({ isBreastfeeding: v })}
                     trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#F9A8D4' }}
                     thumbColor="#fff"
                   />
@@ -430,47 +461,23 @@ export default function SettingsScreen() {
                 <IntervalControl value={intervalMin} onChange={setIntervalMin} />
               </View>
 
-              <View style={styles.previewBox}>
-                <Text style={styles.previewTitle}>Vista previa de horarios</Text>
-                <Text style={styles.previewText}>
-                  {buildPreview(wakeUp, bedTime, intervalMin)}
-                </Text>
-              </View>
+              <EscalationPreview intervalMin={intervalMin} />
+
+              <TouchableOpacity
+                style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+                onPress={handleSchedule}
+                disabled={saving}
+              >
+                <Text style={styles.saveBtnText}>{saving ? 'Programando...' : 'Programar recordatorios 🔔'}</Text>
+              </TouchableOpacity>
             </>
           )}
         </View>
-
-        <TouchableOpacity
-          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <Text style={styles.saveBtnText}>{saving ? 'Guardando...' : 'Guardar y programar 🔔'}</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   )
 }
 
-function buildPreview(wakeUp: string, bedTime: string, intervalMin: number): string {
-  const [wH, wM] = wakeUp.split(':').map(Number)
-  const [bH, bM] = bedTime.split(':').map(Number)
-  const wakeTotal = wH * 60 + wM
-  const bedTotal = bH * 60 + bM
-
-  const times: string[] = []
-  let cursor = wakeTotal
-  while (cursor <= bedTotal && times.length < 12) {
-    const h = Math.floor(cursor / 60)
-    const m = cursor % 60
-    times.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
-    cursor += intervalMin
-  }
-
-  if (times.length === 0) return 'Sin horarios en ese rango'
-  const shown = times.slice(0, 6).join('  ·  ')
-  return times.length > 6 ? `${shown}  · ...+${times.length - 6} más` : shown
-}
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#0d1b2a' },
@@ -557,15 +564,23 @@ const styles = StyleSheet.create({
   intervalBtnText: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '700' },
   intervalValue: { color: '#fff', fontSize: 18, fontWeight: '900', minWidth: 80, textAlign: 'center' },
 
-  // Preview
-  previewBox: {
+  // Escalation preview
+  escalationBox: {
     backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 12,
-    padding: 12,
-    gap: 6,
+    borderRadius: 14,
+    padding: 14,
+    gap: 12,
   },
-  previewTitle: { color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
-  previewText: { color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: '600', lineHeight: 20 },
+  escalationTitle: { color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
+  escalationSub: { color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: -8 },
+  escalationRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  escalationLeft: { alignItems: 'center', width: 56 },
+  escalationDelta: { color: '#60CFFF', fontSize: 12, fontWeight: '800', textAlign: 'center' },
+  escalationConnector: { width: 1, flex: 1, backgroundColor: 'rgba(96,207,255,0.2)', marginTop: 4, minHeight: 16 },
+  escalationRight: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, paddingBottom: 8 },
+  escalationEmoji: { fontSize: 22 },
+  escalationTone: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '700' },
+  escalationCumulative: { color: 'rgba(255,255,255,0.35)', fontSize: 11, marginTop: 1 },
 
   // Test button
   testBtn: {
