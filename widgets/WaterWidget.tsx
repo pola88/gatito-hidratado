@@ -1,6 +1,5 @@
-import React from 'react'
-import { FlexWidget, TextWidget } from 'react-native-android-widget'
 import { CAT_EMOJIS, CAT_HYDRATION_THRESHOLDS } from '@/constants/catConfig'
+import { FlexWidget, TextWidget } from 'react-native-android-widget'
 
 interface WaterWidgetProps {
   glasses: number
@@ -52,23 +51,7 @@ export function WaterWidget({ glasses, goal, progressPercent, canUndo }: WaterWi
         </FlexWidget>
       </FlexWidget>
       <FlexWidget style={{ flexDirection: 'row', width: 'match_parent' }}>
-        <FlexWidget
-          style={{
-            flex: 1,
-            backgroundColor: '#1e3a5f',
-            borderRadius: 10,
-            paddingVertical: 9,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: 6,
-          }}
-          clickAction="ADD_WATER"
-        >
-          <TextWidget
-            text="+ 🥤"
-            style={{ fontSize: 14, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }}
-          />
-        </FlexWidget>
+        
 
         <FlexWidget
           style={{
@@ -78,17 +61,34 @@ export function WaterWidget({ glasses, goal, progressPercent, canUndo }: WaterWi
             paddingVertical: 9,
             alignItems: 'center',
             justifyContent: 'center',
+            marginRight: 6,
           }}
           clickAction={canUndo ? 'REMOVE_WATER' : 'OPEN_APP'}
         >
           <TextWidget
-            text="- 🥤"
+            text="− 💧"
             style={{
               fontSize: 14,
               color: canUndo ? 'rgba(255, 255, 255, 0.65)' : 'rgba(255, 255, 255, 0.2)',
               fontWeight: 'bold',
               textAlign: 'center',
             }}
+          />
+        </FlexWidget>
+        <FlexWidget
+          style={{
+            flex: 1,
+            backgroundColor: '#1e3a5f',
+            borderRadius: 10,
+            paddingVertical: 9,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          clickAction="ADD_WATER"
+        >
+          <TextWidget
+            text="+ 💧"
+            style={{ fontSize: 14, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }}
           />
         </FlexWidget>
       </FlexWidget>

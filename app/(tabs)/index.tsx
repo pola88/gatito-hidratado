@@ -12,6 +12,8 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated'
 import { WaterDrops } from '@/components/cat/WaterDrops'
+import { ContainerIcon, getContainerType } from '@/components/ui/ContainerIcon'
+import { useWaterStore } from '@/stores/waterStore'
 import { useWaterTracker } from '@/hooks/useWaterTracker'
 import { useCatMood } from '@/hooks/useCatMood'
 import { useStreak } from '@/hooks/useStreak'
@@ -87,10 +89,12 @@ function ZzzAnimation() {
 
 export default function HomeScreen() {
   const {
-    goal, todayGlasses, todayMl,
+    goal, goalMl, todayGlasses, todayMl,
     progressPercent, lastDrinkTime, addWater,
     removeDrink,
   } = useWaterTracker()
+  const glassVolumeMl = useWaterStore(s => s.settings.glassVolumeMl)
+  const containerType = getContainerType(glassVolumeMl)
   const { mood, minutesSinceLastDrink } = useCatMood(lastDrinkTime)
   const { streak, isStreakAtRisk } = useStreak()
 
@@ -162,6 +166,7 @@ export default function HomeScreen() {
 
   const progress = progressPercent
   const litros = (todayMl / 1000).toFixed(2)
+  const goalLitros = (goalMl / 1000).toFixed(1)
   const catStateLabel = { happy: '😻 Feliz', normal: '🐱 Normal', thirsty: '😿 Sediento', sleeping: '💤 Dormido' }[mood]
 
   const lastDrinkLabel = minutesSinceLastDrink >= 999
@@ -244,7 +249,11 @@ export default function HomeScreen() {
                   activeOpacity={0.6}
                   hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
                 >
-                  <Text style={[styles.glass, { opacity: filled ? 1 : 0.22 }]}>🥤</Text>
+                  <ContainerIcon
+                    type={containerType}
+                    size={28}
+                    filled={filled}
+                  />
                 </TouchableOpacity>
               )
             })}
@@ -264,7 +273,7 @@ export default function HomeScreen() {
           {[
             { label: 'Estado', value: catStateLabel },
             { label: 'Meta', value: `${goal} vasos` },
-            { label: 'Litros', value: `${litros}L` },
+            { label: 'Tomado', value: `${litros}L / ${goalLitros}L` },
           ].map((s, i) => (
             <View key={i} style={styles.statCard}>
               <Text style={styles.statLabel}>{s.label}</Text>
@@ -339,7 +348,6 @@ const styles = StyleSheet.create({
   progressTitle: { color: 'rgba(255,255,255,0.7)', fontSize: 14, fontWeight: '800' },
   lastDrink: { color: 'rgba(255,255,255,0.4)', fontSize: 12 },
   glassesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  glass: { fontSize: 26 },
   barHeader: { flexDirection: 'row', justifyContent: 'space-between' },
   barLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 12 },
   barPct: { fontSize: 12, fontWeight: '900' },
