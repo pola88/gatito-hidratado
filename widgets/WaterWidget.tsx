@@ -4,6 +4,7 @@ import { FlexWidget, TextWidget } from 'react-native-android-widget'
 interface WaterWidgetProps {
   glasses: number
   goal: number
+  canUndo: boolean
 }
 
 function getCatEmoji(glasses: number, goal: number): string {
@@ -14,7 +15,7 @@ function getCatEmoji(glasses: number, goal: number): string {
   return '😴'
 }
 
-export function WaterWidget({ glasses, goal }: WaterWidgetProps) {
+export function WaterWidget({ glasses, goal, canUndo }: WaterWidgetProps) {
   const emoji = getCatEmoji(glasses, goal)
   return (
     <FlexWidget
@@ -35,7 +36,7 @@ export function WaterWidget({ glasses, goal }: WaterWidgetProps) {
       >
         <TextWidget
           text={emoji}
-          style={{ fontSize: 36, textAlign: 'center' }}
+          style={{ fontSize: 32, textAlign: 'center' }}
         />
         <TextWidget
           text={`${glasses} / ${goal} vasos`}
@@ -43,21 +44,45 @@ export function WaterWidget({ glasses, goal }: WaterWidgetProps) {
           maxLines={1}
         />
       </FlexWidget>
-      <FlexWidget
-        style={{
-          backgroundColor: '#1e3a5f',
-          borderRadius: 20,
-          paddingHorizontal: 14,
-          paddingVertical: 8,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        clickAction="ADD_WATER"
-      >
-        <TextWidget
-          text="+ Beber"
-          style={{ fontSize: 14, color: '#ffffff', fontWeight: 'bold' }}
-        />
+
+      <FlexWidget style={{ flexDirection: 'column', gap: 6 }}>
+        <FlexWidget
+          style={{
+            backgroundColor: '#1e3a5f',
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          clickAction="ADD_WATER"
+        >
+          <TextWidget
+            text="+ 🥤"
+            style={{ fontSize: 15, color: '#ffffff', fontWeight: 'bold' }}
+          />
+        </FlexWidget>
+
+        <FlexWidget
+          style={{
+            backgroundColor: canUndo ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          clickAction={canUndo ? 'REMOVE_WATER' : 'OPEN_APP'}
+        >
+          <TextWidget
+            text="- 🥤"
+            style={{
+              fontSize: 15,
+              color: canUndo ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.2)',
+              fontWeight: 'bold',
+            }}
+          />
+        </FlexWidget>
       </FlexWidget>
     </FlexWidget>
   )

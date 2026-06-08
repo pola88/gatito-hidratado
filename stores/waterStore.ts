@@ -96,7 +96,7 @@ export const useWaterStore = create<WaterStore>()(
           const glasses = Math.floor(totalMl / glassVolumeMl)
           requestWidgetUpdate({
             widgetName: 'WaterWidget',
-            renderWidget: () => React.createElement(WaterWidget, { glasses, goal: today.goal }),
+            renderWidget: () => React.createElement(WaterWidget, { glasses, goal: today.goal, canUndo: true }),
           }).catch(() => {})
         }
       },
@@ -109,6 +109,16 @@ export const useWaterStore = create<WaterStore>()(
         set(state => ({
           today: { ...state.today, entries: state.today.entries.slice(0, -1) },
         }))
+        if (Platform.OS === 'android') {
+          const { today } = get()
+          const glassVolumeMl = get().settings.glassVolumeMl
+          const totalMl = today.entries.reduce((sum, e) => sum + e.amount, 0)
+          const glasses = Math.floor(totalMl / glassVolumeMl)
+          requestWidgetUpdate({
+            widgetName: 'WaterWidget',
+            renderWidget: () => React.createElement(WaterWidget, { glasses, goal: today.goal, canUndo: today.entries.length > 0 }),
+          }).catch(() => {})
+        }
       },
 
       removeLast: () => {
@@ -116,6 +126,16 @@ export const useWaterStore = create<WaterStore>()(
           if (state.today.entries.length === 0) return state
           return { today: { ...state.today, entries: state.today.entries.slice(0, -1) } }
         })
+        if (Platform.OS === 'android') {
+          const { today } = get()
+          const glassVolumeMl = get().settings.glassVolumeMl
+          const totalMl = today.entries.reduce((sum, e) => sum + e.amount, 0)
+          const glasses = Math.floor(totalMl / glassVolumeMl)
+          requestWidgetUpdate({
+            widgetName: 'WaterWidget',
+            renderWidget: () => React.createElement(WaterWidget, { glasses, goal: today.goal, canUndo: today.entries.length > 0 }),
+          }).catch(() => {})
+        }
       },
 
       updateSettings: (s) => {
