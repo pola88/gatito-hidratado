@@ -21,6 +21,8 @@ const DEFAULT_SETTINGS: UserSettings = {
   reminderIntervalMin: 60,
   streakCount: 0,
   lastActiveDate: '',
+  streakBrokenFrom: 0,
+  streakBrokenAt: '',
   goalMode: 'auto',
   dailyGoalMl: DEFAULT_DAILY_GOAL_ML,
   exerciseMinutesToday: 0,

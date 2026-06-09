@@ -20,8 +20,8 @@ export const CAT_HYDRATION_THRESHOLDS = {
 } as const
 
 export const CAT_MESSAGES = {
-  happy: ['Great job staying hydrated! 💪', 'You are amazing! Keep it up! 🌟'],
-  normal: ['Time for a sip of water~ 💧', 'The cat reminds you: drink water!'],
-  thirsty: ['MEOW! I need water NOW! 😿', 'Danger zone! Drink water immediately!'],
-  sleeping: ['zzzz... wake me up when you hydrate...', 'So thirsty... barely can meow...'],
+  happy: ['¡Estoy súper hidratado! 💦', '¡Miau~ me siento tan bien hoy! 😺'],
+  normal: ['Podría tomar un poco más de agua...', 'Miau... creo que tengo algo de sed~ 💧'],
+  thirsty: ['Miau... tengo tantísima sed... me estoy marchitando 😿', 'Siento que me estoy convirtiendo en pasita... 😭'],
+  sleeping: ['zzz... tan seco... tan cansado... zzz...', 'zzz... agua... por favor... zzz...'],
 } as const

@@ -110,13 +110,15 @@ See `.claude/agents/` for specialized agents:
 - `logic-agent.md` — Hooks, stores and business logic
 - `notifications-agent.md` — Reminder system
 - `build-agent.md` — Build, EAS and Expo config
+- `ux-writer-agent.md` — UX flows, copy and microcopy (EN + ES)
 
 ## How to Start a Task
 1. Visual task → delegate to `ui-agent`
 2. Logic/data task → delegate to `logic-agent`
 3. Notifications → delegate to `notifications-agent`
 4. Build/config → delegate to `build-agent`
-5. Cross-domain tasks → use sub-agents in parallel
+5. Any text the user will see → delegate to `ux-writer-agent`
+6. Cross-domain tasks → use sub-agents in parallel
 
 ## Security
 

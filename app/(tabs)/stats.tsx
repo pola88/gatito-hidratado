@@ -36,7 +36,7 @@ function HistoryBar({ record }: { record: { date: string; entries: { amount: num
 
 export default function StatsScreen() {
   const { todayMl, goalMl, progressPercent, todayGlasses, goal, todayEntries } = useWaterTracker()
-  const { streak, isStreakAtRisk } = useStreak()
+  const { streak, isStreakAtRisk, streakJustBroke, streakBrokenFrom } = useStreak()
   const history = useWaterStore(s => s.history)
 
   const litros = (todayMl / 1000).toFixed(2)
@@ -79,38 +79,43 @@ export default function StatsScreen() {
                 {streak} {streak === 1 ? 'día' : 'días'}
               </Text>
               {isStreakAtRisk && streak > 0 && (
-                <Text style={styles.streakRisk}>¡Tu racha está en riesgo!</Text>
+                <Text style={styles.streakRisk}>Tomá agua hoy para no perderla 🔥</Text>
               )}
-              {streak === 0 && (
-                <Text style={styles.streakHint}>Completá el 80% de tu meta para empezar</Text>
+              {streakJustBroke && (
+                <Text style={styles.streakBroken}>Perdiste tu racha de {streakBrokenFrom} {streakBrokenFrom === 1 ? 'día' : 'días'} — empezá una nueva hoy</Text>
+              )}
+              {streak === 0 && !streakJustBroke && (
+                <Text style={styles.streakHint}>Completá el 80% de tu meta hoy para empezar tu racha 🔥</Text>
               )}
             </View>
           </View>
         </View>
 
         {/* History */}
-        {history.length > 0 && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Últimos {history.length} días</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Últimos días</Text>
+          {history.length === 0 ? (
+            <Text style={styles.emptyText}>Aún no hay historial — completá tu primer día para verlo aquí</Text>
+          ) : (
             <View style={styles.histList}>
               {history.slice(0, 7).map(record => (
                 <HistoryBar key={record.date} record={record} />
               ))}
             </View>
-          </View>
-        )}
+          )}
+        </View>
 
         {/* Today's entries */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Registro de hoy</Text>
           {todayEntries.length === 0 ? (
-            <Text style={styles.emptyText}>Todavía no tomaste agua hoy 🥤</Text>
+            <Text style={styles.emptyText}>Todavía no hay registro de hoy — ¡el primer vaso te espera!</Text>
           ) : (
             <View style={styles.entriesList}>
               {[...todayEntries].reverse().map((entry, i) => (
                 <View key={entry.id} style={[styles.entryRow, i > 0 && styles.entryRowBorder]}>
                   <Text style={styles.entryTime}>{formatTime(entry.timestamp)}</Text>
-                  <Text style={styles.entryAmount}>{entry.amount} ml</Text>
+                  <Text style={styles.entryAmount}>1 vaso · {entry.amount} ml</Text>
                 </View>
               ))}
             </View>
@@ -142,8 +147,9 @@ const styles = StyleSheet.create({
   streakBox: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   streakEmoji: { fontSize: 40 },
   streakDays: { fontSize: 32, fontWeight: '900' },
-  streakRisk: { color: '#EF4444', fontSize: 12, fontWeight: '700', marginTop: 2 },
-  streakHint: { color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 },
+  streakRisk:   { color: '#EF4444', fontSize: 12, fontWeight: '700', marginTop: 2 },
+  streakBroken: { color: '#FB923C', fontSize: 12, fontWeight: '600', marginTop: 2 },
+  streakHint:   { color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 },
 
   // History
   histList: { gap: 10 },

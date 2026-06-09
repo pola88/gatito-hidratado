@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native'
 export default function ModalScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Modal</Text>
+      <Text style={styles.title}>Próximamente</Text>
       <StatusBar style="light" />
     </View>
   )

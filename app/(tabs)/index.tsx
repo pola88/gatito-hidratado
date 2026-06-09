@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, {
@@ -29,8 +29,8 @@ const CAT_EMOJIS: Record<CatMood, string> = {
 const CAT_MESSAGES: Record<CatMood, string> = {
   happy: '¡Estoy súper hidratado! 💦',
   normal: 'Podría tomar un poco más de agua...',
-  thirsty: '¡Tengo mucha sed! 😭 ¡Toma agua ya!',
-  sleeping: 'Zzz... descansando... pero igual toma agua',
+  thirsty: 'Miau... tengo tantísima sed... me estoy marchitando 😿',
+  sleeping: 'zzz... tan seco... tan cansado... zzz...',
 }
 
 const DRINK_SOUNDS = ['¡Glup!', '¡Splash!', '¡Aaah~!', '¡Fresquito!', '¡Qué rico! 😺']
@@ -91,11 +91,11 @@ export default function HomeScreen() {
   const {
     goal, goalMl, todayGlasses, todayMl,
     progressPercent, lastDrinkTime, addWater,
-    removeDrink,
+    removeDrink, undoLastDrink,
   } = useWaterTracker()
   const glassVolumeMl = useWaterStore(s => s.settings.glassVolumeMl)
   const containerType = getContainerType(glassVolumeMl)
-  const { mood, minutesSinceLastDrink } = useCatMood(lastDrinkTime)
+  const { mood, minutesSinceLastDrink } = useCatMood(lastDrinkTime, progressPercent)
   const { streak, isStreakAtRisk } = useStreak()
 
 
@@ -103,6 +103,21 @@ export default function HomeScreen() {
   const [drinkSound, setDrinkSound] = useState('')
   const [showSound, setShowSound] = useState(false)
   const [showPaws, setShowPaws] = useState(false)
+  const [showUndoToast, setShowUndoToast] = useState(false)
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleRemoveDrink = () => {
+    removeDrink()
+    setShowUndoToast(true)
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+    undoTimerRef.current = setTimeout(() => setShowUndoToast(false), 4000)
+  }
+
+  const handleUndo = () => {
+    undoLastDrink()
+    setShowUndoToast(false)
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+  }
 
   const catY = useSharedValue(0)
   const catScale = useSharedValue(1)
@@ -229,7 +244,7 @@ export default function HomeScreen() {
             <Text style={styles.bubbleText}>{CAT_MESSAGES[mood]}</Text>
           </View>
 
-          <Text style={styles.tapHint}>👆 TOCA PARA BEBER AGUA</Text>
+          <Text style={styles.tapHint}>👆 toca para beber agua</Text>
         </TouchableOpacity>
 
         {/* Progress */}
@@ -245,7 +260,7 @@ export default function HomeScreen() {
               return (
                 <TouchableOpacity
                   key={i}
-                  onPress={() => filled ? removeDrink() : addWater()}
+                  onPress={() => filled ? handleRemoveDrink() : addWater()}
                   activeOpacity={0.6}
                   hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
                 >
@@ -287,6 +302,15 @@ export default function HomeScreen() {
       {showDrops && (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           <WaterDrops visible={showDrops} onComplete={() => setShowDrops(false)} />
+        </View>
+      )}
+
+      {showUndoToast && (
+        <View style={styles.undoToast}>
+          <Text style={styles.undoToastText}>Vaso eliminado</Text>
+          <TouchableOpacity onPress={handleUndo} style={styles.undoBtn}>
+            <Text style={styles.undoBtnText}>Deshacer</Text>
+          </TouchableOpacity>
         </View>
       )}
     </SafeAreaView>
@@ -362,4 +386,17 @@ const styles = StyleSheet.create({
   },
   statLabel: { color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700' },
   statValue: { color: '#fff', fontSize: 13, fontWeight: '900', textAlign: 'center' },
+
+  undoToast: {
+    position: 'absolute', bottom: 24, left: 20, right: 20,
+    backgroundColor: '#1e3a52',
+    borderRadius: 14, paddingVertical: 14, paddingHorizontal: 18,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    borderWidth: 1, borderColor: 'rgba(96,207,255,0.2)',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3, shadowRadius: 8, elevation: 8,
+  },
+  undoToastText: { color: 'rgba(255,255,255,0.75)', fontSize: 14, fontWeight: '600' },
+  undoBtn: { backgroundColor: 'rgba(96,207,255,0.18)', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7 },
+  undoBtnText: { color: '#60CFFF', fontSize: 13, fontWeight: '800' },
 })

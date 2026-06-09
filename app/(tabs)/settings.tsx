@@ -203,20 +203,36 @@ export default function SettingsScreen() {
     return m > 0 ? `${h}h ${m}min` : `${h}h`
   }, [wakeUp, bedTime])
 
-  const handleUseRecommended = () => setIntervalMin(recommendedInterval)
+  const handleWakeUpChange = (v: string) => {
+    setWakeUp(v)
+    updateSettings({ wakeUpTime: v })
+  }
+
+  const handleBedTimeChange = (v: string) => {
+    setBedTime(v)
+    updateSettings({ bedTime: v })
+  }
+
+  const handleIntervalChange = (v: number) => {
+    setIntervalMin(v)
+    updateSettings({ reminderIntervalMin: v })
+  }
+
+  const handleUseRecommended = () => handleIntervalChange(recommendedInterval)
 
   const handleToggleNotifications = async (value: boolean) => {
     if (value) {
       const granted = await requestPermissions()
       if (!granted) {
         Alert.alert(
-          'Permisos necesarios',
-          'Para recibir recordatorios, habilitá las notificaciones en Configuración del sistema.',
+          'Notificaciones bloqueadas',
+          'Para que el gatito te recuerde tomar agua, activá las notificaciones en Configuración > Aplicaciones > Gatito Hidratado.',
         )
         return
       }
     }
     setNotificationsEnabled(value)
+    updateSettings({ notificationsEnabled: value })
   }
 
   const handlePregnantChange = (v: boolean) => {
@@ -233,16 +249,9 @@ export default function SettingsScreen() {
     if (!isNaN(parsed) && parsed > 0) updateSettings({ weightKg: parsed })
   }
 
-  const handleSchedule = async () => {
+  const handleReschedule = async () => {
     setSaving(true)
-    const notifSettings: Partial<UserSettings> = {
-      wakeUpTime: wakeUp,
-      bedTime,
-      reminderIntervalMin: intervalMin,
-      notificationsEnabled,
-    }
-    updateSettings(notifSettings)
-    const fullSettings: UserSettings = { ...settings, ...notifSettings }
+    const fullSettings: UserSettings = { ...settings, wakeUpTime: wakeUp, bedTime, reminderIntervalMin: intervalMin, notificationsEnabled }
     if (notificationsEnabled) {
       await scheduleFromLastDrink(fullSettings, lastEntry)
     } else {
@@ -251,7 +260,7 @@ export default function SettingsScreen() {
     setSaving(false)
     Alert.alert('¡Listo!', notificationsEnabled
       ? `Recordatorios programados cada ${formatInterval(intervalMin)} entre ${wakeUp} y ${bedTime} 🔔`
-      : 'Recordatorios desactivados.',
+      : 'El gatito descansará sin interrumpirte. Podés activar los recordatorios cuando quieras.',
     )
   }
 
@@ -464,8 +473,8 @@ export default function SettingsScreen() {
 
               <View style={styles.divider} />
 
-              <TimeControl label="Me despierto"    icon="🌅" value={wakeUp}   onChange={setWakeUp} />
-              <TimeControl label="Me voy a dormir" icon="🌙" value={bedTime}  onChange={setBedTime} />
+              <TimeControl label="Me despierto"    icon="🌅" value={wakeUp}   onChange={handleWakeUpChange} />
+              <TimeControl label="Me voy a dormir" icon="🌙" value={bedTime}  onChange={handleBedTimeChange} />
 
               <View style={styles.divider} />
 
@@ -481,18 +490,18 @@ export default function SettingsScreen() {
               </View>
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>Ajuste manual</Text>
-                <IntervalControl value={intervalMin} onChange={setIntervalMin} />
+                <Text style={styles.fieldLabel}>O ajustalo vos</Text>
+                <IntervalControl value={intervalMin} onChange={handleIntervalChange} />
               </View>
 
               <EscalationPreview intervalMin={intervalMin} />
 
               <TouchableOpacity
                 style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-                onPress={handleSchedule}
+                onPress={handleReschedule}
                 disabled={saving}
               >
-                <Text style={styles.saveBtnText}>{saving ? 'Programando...' : 'Guardar recordatorios'}</Text>
+                <Text style={styles.saveBtnText}>{saving ? 'Programando...' : 'Reprogramar ahora'}</Text>
               </TouchableOpacity>
             </>
           )}

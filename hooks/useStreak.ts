@@ -29,14 +29,23 @@ export function useStreak() {
         streakCount: settings.streakCount + 1,
         lastActiveDate: getTodayString(),
       })
-    } else if (!completed) {
-      updateSettings({ streakCount: 0 })
+    } else if (!completed && settings.streakCount > 0) {
+      updateSettings({
+        streakBrokenFrom: settings.streakCount,
+        streakBrokenAt: getTodayString(),
+        streakCount: 0,
+      })
     }
   }
+
+  const todayStr = getTodayString()
+  const streakJustBroke = settings.streakBrokenAt === todayStr && settings.streakBrokenFrom > 0
 
   return {
     streak: settings.streakCount,
     isStreakAtRisk,
     checkAndUpdateStreak,
+    streakJustBroke,
+    streakBrokenFrom: settings.streakBrokenFrom,
   }
 }

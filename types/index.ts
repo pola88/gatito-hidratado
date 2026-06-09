@@ -20,7 +20,9 @@ export interface UserSettings {
   bedTime: string // 'HH:mm'
   reminderIntervalMin: number
   streakCount: number
-  lastActiveDate: string // 'YYYY-MM-DD'
+  lastActiveDate: string    // 'YYYY-MM-DD'
+  streakBrokenFrom: number  // days lost when streak broke, 0 if never broke
+  streakBrokenAt: string    // 'YYYY-MM-DD' of the day it broke, '' if never
   goalMode: 'auto' | 'manual'
   dailyGoalMl: number
   exerciseMinutesToday: number

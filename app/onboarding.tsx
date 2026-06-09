@@ -18,7 +18,7 @@ import type { UserSettings } from '@/types'
 
 type Sex = 'male' | 'female' | 'other'
 
-const TOTAL_STEPS = 4
+const TOTAL_STEPS = 3
 
 function ProgressDots({ current }: { current: number }) {
   return (
@@ -126,14 +126,12 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
 // ─── Step 1: Perfil ────────────────────────────────────────────────────────
 
 function StepProfile({
-  name, setName,
   weight, setWeight,
   sex, setSex,
   isPregnant, setIsPregnant,
   isBreastfeeding, setIsBreastfeeding,
   onBack, onNext,
 }: {
-  name: string; setName: (v: string) => void
   weight: string; setWeight: (v: string) => void
   sex: Sex; setSex: (v: Sex) => void
   isPregnant: boolean; setIsPregnant: (v: boolean) => void
@@ -141,13 +139,9 @@ function StepProfile({
   onBack: () => void; onNext: () => void
 }) {
   const handleNext = () => {
-    if (!name.trim()) {
-      Alert.alert('Falta tu nombre', '¿Cómo te llamo?')
-      return
-    }
     const w = parseFloat(weight)
     if (isNaN(w) || w <= 0) {
-      Alert.alert('Peso inválido', 'Ingresá tu peso en kg')
+      Alert.alert('Necesito tu peso', 'El gatito necesita saber tu peso para calcular tu meta de agua')
       return
     }
     onNext()
@@ -165,19 +159,6 @@ function StepProfile({
       </TouchableOpacity>
       <Text style={styles.stepTitle}>Tu perfil</Text>
       <Text style={styles.stepSubtitle}>Esto me ayuda a calcular tu meta de agua</Text>
-
-      <View style={styles.field}>
-        <Text style={styles.fieldLabel}>¿Cómo te llamo?</Text>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder="Tu nombre"
-          placeholderTextColor="rgba(255,255,255,0.3)"
-          returnKeyType="done"
-          autoFocus
-        />
-      </View>
 
       <View style={styles.field}>
         <Text style={styles.fieldLabel}>Peso (kg)</Text>
@@ -236,80 +217,21 @@ function StepProfile({
   )
 }
 
-// ─── Step 2: Rutina ────────────────────────────────────────────────────────
-
-function StepRoutine({
-  wakeUp, setWakeUp,
-  bedTime, setBedTime,
-  glassVolumeMl, setGlassVolumeMl,
-  hotWeather, setHotWeather,
-  onBack, onNext,
-}: {
-  wakeUp: string; setWakeUp: (v: string) => void
-  bedTime: string; setBedTime: (v: string) => void
-  glassVolumeMl: number; setGlassVolumeMl: (v: number) => void
-  hotWeather: boolean; setHotWeather: (v: boolean) => void
-  onBack: () => void; onNext: () => void
-}) {
-  return (
-    <ScrollView contentContainerStyle={styles.stepScroll}>
-      <TouchableOpacity onPress={onBack}>
-        <Text style={styles.backBtn}>← Atrás</Text>
-      </TouchableOpacity>
-      <Text style={styles.stepTitle}>Tu rutina</Text>
-      <Text style={styles.stepSubtitle}>Así organizo los recordatorios en tu horario</Text>
-
-      <View style={styles.card}>
-        <TimeControl label="Me despierto" icon="🌅" value={wakeUp} onChange={setWakeUp} />
-        <TimeControl label="Me voy a dormir" icon="🌙" value={bedTime} onChange={setBedTime} />
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Tamaño del vaso</Text>
-        <StepperControl
-          value={glassVolumeMl}
-          step={50}
-          min={100}
-          max={500}
-          format={v => `${v} ml`}
-          onChange={setGlassVolumeMl}
-        />
-        <Text style={styles.fieldHint}>Define cuántos vasos equivale tu meta</Text>
-      </View>
-
-      <View style={styles.switchRow}>
-        <View style={styles.switchLabelGroup}>
-          <Text style={styles.fieldLabel}>Clima caluroso 🌡️</Text>
-          <Text style={styles.fieldHint}>Suma +400ml a la meta</Text>
-        </View>
-        <Switch
-          value={hotWeather}
-          onValueChange={setHotWeather}
-          trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#FB923C' }}
-          thumbColor="#fff"
-        />
-      </View>
-
-      <TouchableOpacity style={[styles.primaryBtn, styles.primaryBtnMt]} onPress={onNext}>
-        <Text style={styles.primaryBtnText}>Continuar</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  )
-}
-
-// ─── Step 3: Recordatorios ─────────────────────────────────────────────────
+// ─── Step 2: Recordatorios ─────────────────────────────────────────────────
 
 function StepNotifications({
   notificationsEnabled, setNotificationsEnabled,
   intervalMin, setIntervalMin,
   goalResult,
-  wakeUp, bedTime,
+  wakeUp, setWakeUp,
+  bedTime, setBedTime,
   onBack, onFinish,
 }: {
   notificationsEnabled: boolean; setNotificationsEnabled: (v: boolean) => void
   intervalMin: number; setIntervalMin: (v: number) => void
   goalResult: { totalMl: number; totalGlasses: number }
-  wakeUp: string; bedTime: string
+  wakeUp: string; setWakeUp: (v: string) => void
+  bedTime: string; setBedTime: (v: string) => void
   onBack: () => void; onFinish: () => void
 }) {
   const { requestPermissions } = useNotifications()
@@ -319,8 +241,8 @@ function StepNotifications({
       const granted = await requestPermissions()
       if (!granted) {
         Alert.alert(
-          'Permisos necesarios',
-          'Para recibir recordatorios, habilitá las notificaciones en Configuración del sistema.',
+          'Notificaciones bloqueadas',
+          'Para que el gatito te recuerde tomar agua, activá las notificaciones en Configuración > Aplicaciones > Gatito Hidratado.',
         )
         return
       }
@@ -345,7 +267,7 @@ function StepNotifications({
       <View style={styles.switchRow}>
         <View style={styles.switchLabelGroup}>
           <Text style={styles.fieldLabel}>Activar notificaciones 🔔</Text>
-          <Text style={styles.fieldHint}>Recordatorios personalizados</Text>
+          <Text style={styles.fieldHint}>El gatito te mandará recordatorios</Text>
         </View>
         <Switch
           value={notificationsEnabled}
@@ -356,29 +278,39 @@ function StepNotifications({
       </View>
 
       {notificationsEnabled && (
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Cada cuánto te aviso</Text>
-          <View style={styles.stepperRow}>
-            <TouchableOpacity
-              style={styles.stepperBtn}
-              onPress={() => setIntervalMin(Math.max(15, intervalMin - 15))}
-            >
-              <Text style={styles.stepperBtnText}>− 15min</Text>
-            </TouchableOpacity>
-            <Text style={styles.stepperValue}>{formatInterval(intervalMin)}</Text>
-            <TouchableOpacity
-              style={styles.stepperBtn}
-              onPress={() => setIntervalMin(Math.min(240, intervalMin + 15))}
-            >
-              <Text style={styles.stepperBtnText}>+ 15min</Text>
-            </TouchableOpacity>
+        <>
+          <View style={styles.card}>
+            <TimeControl label="Me despierto" icon="🌅" value={wakeUp} onChange={setWakeUp} />
+            <TimeControl label="Me voy a dormir" icon="🌙" value={bedTime} onChange={setBedTime} />
           </View>
-          <Text style={styles.fieldHint}>Entre {wakeUp} y {bedTime}</Text>
-        </View>
+
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>Cada cuánto te aviso</Text>
+            <View style={styles.stepperRow}>
+              <TouchableOpacity
+                style={styles.stepperBtn}
+                onPress={() => setIntervalMin(Math.max(15, intervalMin - 15))}
+              >
+                <Text style={styles.stepperBtnText}>− 15min</Text>
+              </TouchableOpacity>
+              <Text style={styles.stepperValue}>{formatInterval(intervalMin)}</Text>
+              <TouchableOpacity
+                style={styles.stepperBtn}
+                onPress={() => setIntervalMin(Math.min(240, intervalMin + 15))}
+              >
+                <Text style={styles.stepperBtnText}>+ 15min</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.fieldHint}>Entre {wakeUp} y {bedTime}</Text>
+          </View>
+        </>
       )}
 
       <TouchableOpacity style={[styles.primaryBtn, styles.primaryBtnMt]} onPress={onFinish}>
         <Text style={styles.primaryBtnText}>¡Listo, empezar! 🐱</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={onFinish} style={styles.skipBtn}>
+        <Text style={styles.skipBtnText}>Ahora no, quizás más tarde</Text>
       </TouchableOpacity>
     </ScrollView>
   )
@@ -394,7 +326,6 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(0)
 
   // Step 1
-  const [name, setName] = useState('')
   const [weight, setWeight] = useState('70')
   const [sex, setSex] = useState<Sex>('other')
   const [isPregnant, setIsPregnant] = useState(false)
@@ -403,10 +334,9 @@ export default function OnboardingScreen() {
   // Step 2
   const [wakeUp, setWakeUp] = useState(defaultSettings.wakeUpTime)
   const [bedTime, setBedTime] = useState(defaultSettings.bedTime)
-  const [glassVolumeMl, setGlassVolumeMl] = useState(defaultSettings.glassVolumeMl)
-  const [hotWeather, setHotWeather] = useState(false)
+  const glassVolumeMl = defaultSettings.glassVolumeMl
+  const hotWeather = false
 
-  // Step 3
   const [notificationsEnabled, setNotificationsEnabled] = useState(false)
 
   const goalResult = useMemo(() => {
@@ -428,7 +358,6 @@ export default function OnboardingScreen() {
   const handleFinish = () => {
     const weightKg = parseFloat(weight) || 70
     const partial: Partial<UserSettings> = {
-      name: name.trim(),
       weightKg,
       sex,
       isPregnant,
@@ -453,7 +382,6 @@ export default function OnboardingScreen() {
 
       {step === 1 && (
         <StepProfile
-          name={name} setName={setName}
           weight={weight} setWeight={setWeight}
           sex={sex} setSex={setSex}
           isPregnant={isPregnant} setIsPregnant={setIsPregnant}
@@ -464,26 +392,15 @@ export default function OnboardingScreen() {
       )}
 
       {step === 2 && (
-        <StepRoutine
-          wakeUp={wakeUp} setWakeUp={setWakeUp}
-          bedTime={bedTime} setBedTime={setBedTime}
-          glassVolumeMl={glassVolumeMl} setGlassVolumeMl={setGlassVolumeMl}
-          hotWeather={hotWeather} setHotWeather={setHotWeather}
-          onBack={() => setStep(1)}
-          onNext={() => setStep(3)}
-        />
-      )}
-
-      {step === 3 && (
         <StepNotifications
           notificationsEnabled={notificationsEnabled}
           setNotificationsEnabled={setNotificationsEnabled}
           intervalMin={effectiveInterval}
           setIntervalMin={handleIntervalChange}
           goalResult={goalResult}
-          wakeUp={wakeUp}
-          bedTime={bedTime}
-          onBack={() => setStep(2)}
+          wakeUp={wakeUp} setWakeUp={setWakeUp}
+          bedTime={bedTime} setBedTime={setBedTime}
+          onBack={() => setStep(1)}
           onFinish={handleFinish}
         />
       )}
@@ -592,4 +509,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnMt: { marginTop: 8 },
   primaryBtnText: { color: '#0d1b2a', fontSize: 16, fontWeight: '800' },
+
+  skipBtn: { alignItems: 'center', paddingVertical: 12 },
+  skipBtnText: { color: 'rgba(255,255,255,0.35)', fontSize: 13, fontWeight: '600' },
 })

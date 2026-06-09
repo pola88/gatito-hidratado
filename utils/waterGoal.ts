@@ -17,8 +17,8 @@ export interface GoalResult {
 }
 
 export function calculateDailyGoal(factors: GoalFactors): GoalResult {
-  // 1. BASE: peso × 35 ml (male/other) o × 31 ml (female)
-  const mlPerKg = factors.sex === 'female' ? 31 : 35
+  // 1. BASE: peso × 30 ml (male/other) o × 27 ml (female)
+  const mlPerKg = factors.sex === 'female' ? 27 : 30
   const baseMl = Math.round(factors.weightKg * mlPerKg)
 
   const adjustments: { label: string; ml: number }[] = []

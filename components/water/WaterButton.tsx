@@ -30,7 +30,7 @@ export function WaterButton({ onPress, glassVolumeMl = 250 }: WaterButtonProps) 
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.85}>
       <Animated.View style={[styles.button, animatedStyle]}>
-        <Text style={styles.buttonText}>Drank water! 💧</Text>
+        <Text style={styles.buttonText}>¡Tomé agua! 💧</Text>
         <Text style={styles.volumeText}>{glassVolumeMl}ml</Text>
       </Animated.View>
     </TouchableOpacity>
