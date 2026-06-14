@@ -8,11 +8,12 @@ import { useNotifications } from './useNotifications'
 export function useWaterTracker() {
   const store = useWaterStore()
   const { checkAndUpdateStreak } = useStreak()
-  const { scheduleEscalatingReminders } = useNotifications()
+  const { scheduleEscalatingReminders, rescheduleIfNeeded } = useNotifications()
 
   useEffect(() => {
     store.checkDayReset()
     checkAndUpdateStreak()
+    rescheduleIfNeeded(store.settings, lastDrinkTime)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

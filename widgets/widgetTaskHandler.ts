@@ -4,6 +4,7 @@ import React from 'react'
 import { WaterWidget } from './WaterWidget'
 import { getTodayString } from '@/utils/dateHelpers'
 import { calcTotalMl, calcGlasses, calcProgressPercent } from '@/utils/hydrationCalc'
+import { scheduleEscalatingReminders } from '@/utils/notificationScheduler'
 
 const STORAGE_KEY = '@gatito_store'
 
@@ -16,14 +17,36 @@ interface PersistedEntry {
 interface PersistedState {
   state: {
     today: { date: string; entries: PersistedEntry[]; goal: number; goalMl: number }
-    settings: { glassVolumeMl: number }
+    settings: {
+      glassVolumeMl: number
+      notificationsEnabled: boolean
+      reminderIntervalMin: number
+      wakeUpTime: string
+      bedTime: string
+    }
   }
 }
 
-async function readWaterState(): Promise<{ glasses: number; goal: number; progressPercent: number; glassVolumeMl: number; canUndo: boolean }> {
+interface WaterState {
+  glasses: number
+  goal: number
+  progressPercent: number
+  glassVolumeMl: number
+  canUndo: boolean
+  notificationsEnabled: boolean
+  reminderIntervalMin: number
+  wakeUpTime: string
+  bedTime: string
+}
+
+async function readWaterState(): Promise<WaterState> {
+  const defaults: WaterState = {
+    glasses: 0, goal: 8, progressPercent: 0, glassVolumeMl: 250, canUndo: false,
+    notificationsEnabled: false, reminderIntervalMin: 60, wakeUpTime: '07:00', bedTime: '22:00',
+  }
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY)
-    if (!raw) return { glasses: 0, goal: 8, progressPercent: 0, glassVolumeMl: 250, canUndo: false }
+    if (!raw) return defaults
     const { state }: PersistedState = JSON.parse(raw)
     const glassVolumeMl = state.settings?.glassVolumeMl ?? 250
     const entries = state.today.date === getTodayString() ? state.today.entries : []
@@ -35,9 +58,13 @@ async function readWaterState(): Promise<{ glasses: number; goal: number; progre
       progressPercent: calcProgressPercent(totalMl, goalMl),
       glassVolumeMl,
       canUndo: entries.length > 0,
+      notificationsEnabled: state.settings?.notificationsEnabled ?? false,
+      reminderIntervalMin: state.settings?.reminderIntervalMin ?? 60,
+      wakeUpTime: state.settings?.wakeUpTime ?? '07:00',
+      bedTime: state.settings?.bedTime ?? '22:00',
     }
   } catch {
-    return { glasses: 0, goal: 8, progressPercent: 0, glassVolumeMl: 250, canUndo: false }
+    return defaults
   }
 }
 
@@ -79,8 +106,12 @@ registerWidgetTaskHandler(async ({ widgetAction, clickAction, renderWidget }) =>
 
   if (widgetAction === 'WIDGET_CLICK') {
     if (clickAction === 'ADD_WATER') {
-      const { glassVolumeMl } = await readWaterState()
+      const { glassVolumeMl, notificationsEnabled, reminderIntervalMin, wakeUpTime, bedTime } = await readWaterState()
       await addWaterToStorage(glassVolumeMl)
+      await scheduleEscalatingReminders(
+        { notificationsEnabled, reminderIntervalMin, wakeUpTime, bedTime },
+        new Date(),
+      )
     } else if (clickAction === 'REMOVE_WATER') {
       await removeLastWaterFromStorage()
     }
